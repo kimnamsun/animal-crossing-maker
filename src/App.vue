@@ -1,28 +1,34 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <ImageSubtitle />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import ImageSubtitle from './components/ImageSubtitle.vue';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
-  }
-}
+    ImageSubtitle,
+  },
+};
 </script>
 
 <style>
+body {
+  margin: 0;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  background-image: url('@/assets/background.png');
+  background-size: cover; /* 배경을 컨테이너에 맞게 늘립니다. */
+  background-repeat: no-repeat;
+  background-position: center;
 }
 </style>
