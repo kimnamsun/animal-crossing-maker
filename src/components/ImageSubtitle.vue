@@ -5,26 +5,6 @@
         <h1>만들어봐요 동숲 짤</h1>
       </el-header>
       <el-main>
-        <!-- <div class="select-container">
-          <div class="select">
-            <div
-              class="select-option"
-              v-for="image in images"
-              :key="image.id"
-              @click="onImageChanged(image.id)"
-            >
-              <el-image
-                v-if="selectedImage === image.id"
-                style="width: 35px; height: 35px; margin-left: 10px"
-                :src="require('@/assets/cursor.png')"
-                :fit="fit"
-              />
-              <span>
-                {{ image.label }}
-              </span>
-            </div>
-          </div>
-        </div> -->
         <el-button
           @click="downloadCanvas"
           id="download"
@@ -47,14 +27,16 @@
           <el-image
             style="width: 35px; height: 35px; margin-left: 10px"
             :src="require('@/assets/leaf.png')"
-            :fit="fit"
           />
-          <el-input
-            type="text"
-            :value="option.text"
-            @input="onValueChanged('text', $event)"
-            class="transparent-input"
-          />
+          <div v-for="(input, index) in inputs" :key="index">
+            <el-input
+              :type="input.type"
+              :value="input.text"
+              :maxLength="input.maxLength"
+              @input="onValueChanged(input.type, $event)"
+              class="transparent-input"
+            />
+          </div>
         </div>
       </el-main>
     </el-container>
@@ -68,16 +50,33 @@ export default {
   data() {
     return {
       windowWidth: 0,
-      imageIndex: 0,
-      // selectedImage: 1,
-      option: {
-        fontFamily: 'Nanum Gothic',
-        fontSize: 30,
-        fontColor: '#FFFFFF',
-        fontWeight: 'normal',
-        text: '',
-        textBorder: 'black',
-      },
+      inputs: [
+        {
+          id: 1,
+          type: 'name',
+          text: '',
+          style: {
+            fontFamily: 'Nanum Gothic',
+            fontSize: 30,
+            fontWeight: 'bold',
+            fontColor: '#683617',
+            textBorder: 'none',
+          },
+          maxLength: 3,
+        },
+        {
+          id: 2,
+          type: 'contents',
+          text: '',
+          style: {
+            fontFamily: 'NanumGothic',
+            fontSize: 20,
+            fontColor: '#827255',
+            textBorder: 'none',
+          },
+          maxLength: 30,
+        },
+      ],
     };
   },
 
@@ -85,81 +84,114 @@ export default {
     image() {
       return { id: 2, src: require('@/assets/image2.png'), label: '말풍선' };
     },
-    // images() {
-    //   return [
-    //     { id: 1, src: require('@/assets/image1.png'), label: '로고' },
-    //     { id: 2, src: require('@/assets/image2.png'), label: '말풍선' },
-    //   ];
-    // },
   },
 
-  watch: {
-    selectedImage() {
-      this.updateCanvasImage();
-    },
-  },
+  watch: {},
 
   methods: {
-    onValueChanged(key, value) {
-      this.option[key] = value;
-      this.updateCanvas();
-    },
+    onValueChanged(type, value) {
+      const input = this.inputs.find((input) => input.type === type);
 
-    // onImageChanged(value) {
-    //   this.selectedImage = value;
-    //   this.updateCanvas();
-    // },
-
-    updateCanvas() {
-      if (!this.$refs.canvas) {
+      if (!input) {
         return;
       }
+
+      input.text = value;
       this.updateCanvasImage();
     },
-
     updateCanvasImage() {
+      this.drawImage();
+    },
+
+    drawImage() {
       const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height); // 기존 내용 삭제
 
       const img = new Image();
-      img.src = this.image.src;
+      img.src = require('@/assets/image2.png');
 
       img.onload = () => {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        this.inputs.forEach(({ type, text }) => {
+          if (text) {
+            this.updateCanvasText(type, text);
+          }
+        });
       };
     },
-    updateCanvasText() {
+
+    // methods 안의 updateCanvasText 메소드 부분을 수정합니다.
+    updateCanvasText(type, text) {
+      if (!text) {
+        return;
+      }
+
+      if (type === 'name') {
+        this.updateCanvasNameText(text);
+        return;
+      }
+
+      if (type === 'contents') {
+        this.updateCanvasContentsText(text);
+        return;
+      }
+    },
+
+    updateCanvasNameText(text) {
+      const style = this.inputs.find((input) => input.type === 'name').style;
+
       const { canvas } = this.$refs;
+      const ctx = canvas.getContext('2d');
 
-      const { text, fontFamily, fontSize, fontColor, fontWeight, textBorder } =
-        this.option;
+      ctx.font = `${style.fontWeight} ${style.fontSize}px ${style.fontFamily}`;
+      ctx.textAlign = 'center'; // 가로 가운데 정렬
+      ctx.textBaseline = 'middle'; // 세로 가운데 정렬
 
+      const lines = text.split('\n');
+      const lineHeight = style.fontSize * 1.5; // 행 간격
+      const x = 165; // x 좌표값 조정
+      const y = 75; // y 좌표값 조정
+
+      const angle = -Math.PI / 20; // 회전 각도 (라디안)
+
+      ctx.save(); // 현재 컨텍스트 설정 저장
+      ctx.translate(x, y); // 회전 중심 좌표 설정
+      ctx.rotate(angle); // 지정한 각도만큼 회전
+      ctx.fillStyle = style.fontColor;
+
+      lines.forEach((line, index) => {
+        const yCoord = index * lineHeight;
+        ctx.fillText(line, 0, yCoord); // 회전한 각도에 따라 텍스트 그리기
+      });
+
+      ctx.restore(); // 이전 컨텍스트 설정 복구
+    },
+
+    updateCanvasContentsText(text) {
+      const style = this.inputs.find(
+        (input) => input.type === 'contents'
+      ).style;
+
+      const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
 
       ctx.textAlign = 'center'; // 가로 가운데 정렬
       ctx.textBaseline = 'middle'; // 세로 가운데 정렬
-      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.font = `${style.fontWeight} ${style.fontSize}px ${style.fontFamily}`;
 
       const lines = text.split('\n');
-
+      const lineHeight = style.fontSize * 1.5; // 행 간격
+      const totalTextHeight = lines.length * lineHeight; // 텍스트 전체 높이
+      const yStartPosition =
+        (canvas.height - totalTextHeight) / 2 + style.fontSize / 2; // 이미지 위에 텍스트를 그리기 위해 조정
       lines.forEach((line, index) => {
-        ctx.shadowColor = 'black';
-        ctx.shadowBlur = 10;
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = `${textBorder}`;
-        ctx.strokeText(
-          line,
-          canvas.width / 2,
-          canvas.height - fontSize * (lines.length - index) * 1.5
-        );
-
-        ctx.fillStyle = fontColor;
-        ctx.fillText(
-          line,
-          canvas.width / 2,
-          canvas.height - fontSize * (lines.length - index) * 1.5
-        );
+        const y = yStartPosition + index * lineHeight;
+        ctx.strokeStyle = `${style.textBorder}`;
+        ctx.strokeStyle = style.fontColor;
+        ctx.strokeText(line, canvas.width / 2, y);
+        ctx.fillStyle = style.fontColor; // 폰트 색상 설정
+        ctx.fillText(line, canvas.width / 2, y); // 텍스트 내용 그리기
       });
     },
 
@@ -167,7 +199,7 @@ export default {
       const url = this.$refs.canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${this.images[this.imageIndex].name}.png`);
+      link.setAttribute('download', `image.png`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -180,10 +212,9 @@ export default {
 
   mounted() {
     this.calculateWindowWidth();
+    this.updateCanvasImage();
     this.$nextTick(() => {
       window.addEventListener('resize', this.calculateWindowWidth);
-
-      this.updateCanvas();
     });
   },
 };
@@ -208,29 +239,4 @@ export default {
 .el-item {
   margin: 0;
 }
-
-/* .select-container {
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  margin-bottom: 20px;
-}
-
-.select {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 300px;
-  height: 130px;
-  border-radius: 45%;
-  background-color: #f6e8a7;
-}
-
-.select-option {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-} */
 </style>
