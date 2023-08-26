@@ -50,6 +50,12 @@ export default {
   data() {
     return {
       windowWidth: 0,
+      commonStyle: {
+        fontFamily: 'NanumGothic',
+        fontSize: 30,
+        fontWeight: 'bold',
+        textBorder: 'none',
+      },
       inputs: [
         {
           id: 1,
@@ -57,11 +63,8 @@ export default {
           label: '이름',
           text: '',
           style: {
-            fontFamily: 'NanumGothic',
-            fontSize: 30,
-            fontWeight: 'bold',
+            ...this.commonStyle,
             fontColor: '#683617',
-            textBorder: 'none',
           },
           maxLength: 3,
         },
@@ -71,11 +74,8 @@ export default {
           label: '내용',
           text: '',
           style: {
-            fontFamily: 'NanumGothic',
-            fontSize: 30,
-            fontWeight: 'bold',
+            ...this.commonStyle,
             fontColor: '#827255',
-            textBorder: 'none',
           },
           maxLength: 30,
         },
@@ -84,8 +84,8 @@ export default {
   },
 
   computed: {
-    image() {
-      return { id: 2, src: require('@/assets/image2.png'), label: '말풍선' };
+    getImage() {
+      return require('@/assets/image2.png');
     },
 
     getPathName() {
@@ -106,8 +106,6 @@ export default {
 
       // 만약 줄 바꿈 문자가 4개 이상이면, 더 이상 입력을 허용하지 않음
       if (input.type === 'contents' && lineBreakCount >= 4) {
-        // 현재 input.text를 유지하거나 초기화하려면 여기에서 처리
-        // input.text = ...;
         return;
       }
 
@@ -125,28 +123,52 @@ export default {
       const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
 
-      const img = new Image();
-      img.src = require('@/assets/image2.png');
+      if (!this.img) {
+        // 이미지가 없으면 로드
+        this.img = new Image();
+        this.img.src = this.getImage;
 
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        this.img.onload = () => {
+          // 이미지가 로드되면 그림
+          ctx.drawImage(this.img, 0, 0, canvas.width, canvas.height);
+          this.drawCanvasText();
+        };
+        return;
+      }
 
-        this.inputs.forEach(({ type, text }) => {
-          if (!text) {
-            return;
-          }
+      ctx.drawImage(this.img, 0, 0, canvas.width, canvas.height);
+      this.drawCanvasText();
+    },
 
-          if (type === 'name') {
-            this.updateCanvasNameText(text);
-            return;
-          }
+    drawCanvasText() {
+      this.inputs.forEach(({ type, text }) => {
+        if (!text) {
+          return;
+        }
 
-          if (type === 'contents') {
-            this.updateCanvasContentsText(text);
-            return;
-          }
-        });
-      };
+        this.updateCanvasText(type, text);
+      });
+    },
+
+    updateCanvasText(type, text) {
+      const { canvas } = this.$refs;
+      const ctx = canvas.getContext('2d');
+
+      ctx.font = `${this.commonStyle.fontWeight} ${this.commonStyle.fontSize}px ${this.commonStyle.fontFamily}`;
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.textBorder = this.commonStyle.textBorder;
+
+      if (type === 'name') {
+        this.updateCanvasNameText(text);
+        return;
+      }
+
+      if (type === 'contents') {
+        this.updateCanvasContentsText(text);
+        return;
+      }
     },
 
     updateCanvasNameText(text) {
@@ -155,13 +177,8 @@ export default {
       const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
 
-      ctx.font = `${style.fontWeight} ${style.fontSize}px ${style.fontFamily}`;
-
-      ctx.textAlign = 'center'; // 가로 가운데 정렬
-      ctx.textBaseline = 'middle'; // 세로 가운데 정렬
-
       const lines = text.split('\n');
-      const lineHeight = style.fontSize * 1.5; // 행 간격
+      const lineHeight = this.commonStyle.fontSize * 1.5; // 행 간격
       const x = 165; // x 좌표값 조정
       const y = 75; // y 좌표값 조정
 
@@ -188,25 +205,19 @@ export default {
       const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
 
-      ctx.textAlign = 'center'; // 가로 가운데 정렬
-      ctx.textBaseline = 'middle'; // 세로 가운데 정렬
-      ctx.font = `${style.fontWeight} ${style.fontSize}px ${style.fontFamily}`;
-      ctx.fontSize = style.fontSize + 'px'; // 여기서 폰트 크기 설정
-
       const lines = text.split('\n');
-      const lineHeight = style.fontSize * 1.5; // 행 간격
+      const lineHeight = this.commonStyle.fontSize * 1.5; // 행 간격
       const totalTextHeight = lines.length * lineHeight; // 텍스트 전체 높이
       const yStartPosition =
-        (canvas.height - totalTextHeight) / 2 + style.fontSize / 2; // 이미지 위에 텍스트를 그리기 위해 조정
+        (canvas.height - totalTextHeight) / 2 + this.commonStyle.fontSize / 2; // 이미지 위에 텍스트를 그리기 위해 조정
 
       lines.forEach((line, index) => {
         const y = yStartPosition + index * lineHeight;
 
-        ctx.strokeStyle = `${style.textBorder}`;
         ctx.strokeStyle = style.fontColor;
         ctx.strokeText(line, canvas.width / 2, y);
-        ctx.fillStyle = style.fontColor; // 폰트 색상 설정
-        ctx.fillText(line, canvas.width / 2, y); // 텍스트 내용 그리기
+        ctx.fillStyle = style.fontColor;
+        ctx.fillText(line, canvas.width / 2, y);
       });
     },
 
