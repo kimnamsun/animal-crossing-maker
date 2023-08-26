@@ -29,7 +29,6 @@
             <el-image
               style="width: 35px; height: 35px; margin-top: 3px"
               :src="require('@/assets/cursor.png')"
-              :fit="fit"
             />
             <p class="download-text">다운로드를 해보자구리</p>
           </div>
@@ -113,6 +112,12 @@ export default {
     getPathName() {
       return window.location.pathname;
     },
+    getNameInput() {
+      return this.inputs.find((input) => input.type === 'name');
+    },
+    getContentsInput() {
+      return this.inputs.find((input) => input.type === 'contents');
+    },
   },
 
   methods: {
@@ -194,7 +199,7 @@ export default {
     },
 
     updateCanvasNameText(text) {
-      const style = this.inputs.find((input) => input.type === 'name').style;
+      const style = this.getNameInput.style;
 
       const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
@@ -220,9 +225,7 @@ export default {
     },
 
     updateCanvasContentsText(text) {
-      const style = this.inputs.find(
-        (input) => input.type === 'contents'
-      ).style;
+      const style = this.getContentsInput.style;
 
       const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
@@ -246,8 +249,14 @@ export default {
     downloadCanvas() {
       const url = this.$refs.canvas.toDataURL('image/png');
       const link = document.createElement('a');
+
+      const currentDateTime = new Date();
+      const fileName = `${
+        this.getNameInput.text
+      }_${currentDateTime.getTime()}.png`;
+
       link.href = url;
-      link.setAttribute('download', `image.png`);
+      link.setAttribute('download', fileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
