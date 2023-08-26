@@ -27,7 +27,7 @@ body {
   text-align: center;
   color: #2c3e50;
   background-image: url('@/assets/background.png');
-  background-size: cover; /* 배경을 컨테이너에 맞게 늘립니다. */
+  background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
 }

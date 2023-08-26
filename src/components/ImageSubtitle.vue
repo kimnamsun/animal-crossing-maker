@@ -2,20 +2,37 @@
   <div id="app">
     <el-container>
       <el-header>
-        <h1 v-if="getPathName === '/'">만들어봐요 동숲 짤</h1>
+        <el-image
+          style="width: 300px"
+          :src="require('@/assets/logo.png')"
+          v-if="getPathName === '/'"
+        />
       </el-header>
       <el-main>
         <el-button
           @click="downloadCanvas"
           id="download"
           style="
-            color: white;
-            background-color: #1bd9b4;
+            color: #683617;
+            background-color: #f6e8a7;
             border: none;
             border-radius: 10px;
           "
-          >다운로드를 해보자구리</el-button
         >
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-content: center;
+            "
+          >
+            <el-image
+              style="width: 35px; height: 35px; margin-top: 3px"
+              :src="require('@/assets/cursor.png')"
+            />
+            <p class="download-text">다운로드를 해보자구리</p>
+          </div>
+        </el-button>
 
         <el-card class="box-card">
           <canvas id="canvas" ref="canvas" :width="1000" :height="400">
@@ -23,8 +40,12 @@
           </canvas>
         </el-card>
 
-        <div v-for="(input, index) in inputs" :key="index">
-          <div class="input-container">
+        <div class="inputs-container">
+          <div
+            v-for="(input, index) in inputs"
+            :key="index"
+            class="input-container"
+          >
             <el-image
               style="width: 35px; height: 35px; margin-left: 10px"
               :src="require('@/assets/leaf.png')"
@@ -85,11 +106,17 @@ export default {
 
   computed: {
     getImage() {
-      return require('@/assets/image2.png');
+      return require('@/assets/image.png');
     },
 
     getPathName() {
       return window.location.pathname;
+    },
+    getNameInput() {
+      return this.inputs.find((input) => input.type === 'name');
+    },
+    getContentsInput() {
+      return this.inputs.find((input) => input.type === 'contents');
     },
   },
 
@@ -172,7 +199,7 @@ export default {
     },
 
     updateCanvasNameText(text) {
-      const style = this.inputs.find((input) => input.type === 'name').style;
+      const style = this.getNameInput.style;
 
       const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
@@ -198,9 +225,7 @@ export default {
     },
 
     updateCanvasContentsText(text) {
-      const style = this.inputs.find(
-        (input) => input.type === 'contents'
-      ).style;
+      const style = this.getContentsInput.style;
 
       const { canvas } = this.$refs;
       const ctx = canvas.getContext('2d');
@@ -224,8 +249,14 @@ export default {
     downloadCanvas() {
       const url = this.$refs.canvas.toDataURL('image/png');
       const link = document.createElement('a');
+
+      const currentDateTime = new Date();
+      const fileName = `${
+        this.getNameInput.text
+      }_${currentDateTime.getTime()}.png`;
+
       link.href = url;
-      link.setAttribute('download', `image.png`);
+      link.setAttribute('download', fileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -252,16 +283,28 @@ export default {
   margin: 20px 0;
 }
 
+.el-main {
+  padding: 150px;
+}
+
+.inputs-container {
+  border-radius: 10px;
+  background-color: white;
+  padding: 10px 20px 20px 20px;
+}
+
 .input-container {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  background-color: white;
-  padding: 8px;
+  padding-top: 10px;
 }
 
 .input-label {
   width: 5%;
+}
+
+.download-text:hover {
+  background-color: #f3d700;
+  transition: 0.3s;
 }
 </style>
