@@ -2,7 +2,7 @@
   <div id="app">
     <el-container>
       <el-header>
-        <h1>만들어봐요 동숲 짤</h1>
+        <h1 v-if="getPathName === '/'">만들어봐요 동숲 짤</h1>
       </el-header>
       <el-main>
         <el-button
@@ -23,18 +23,18 @@
           </canvas>
         </el-card>
 
-        <div class="input-container">
-          <el-image
-            style="width: 35px; height: 35px; margin-left: 10px"
-            :src="require('@/assets/leaf.png')"
-          />
-          <div v-for="(input, index) in inputs" :key="index">
+        <div v-for="(input, index) in inputs" :key="index">
+          <div class="input-container">
+            <el-image
+              style="width: 35px; height: 35px; margin-left: 10px"
+              :src="require('@/assets/leaf.png')"
+            />
+            <span class="input-label">{{ input.label }}</span>
             <el-input
-              :type="input.type"
+              :type="input.type === 'contents' ? 'textarea' : 'text'"
               :value="input.text"
               :maxLength="input.maxLength"
               @input="onValueChanged(input.type, $event)"
-              class="transparent-input"
             />
           </div>
         </div>
@@ -54,9 +54,10 @@ export default {
         {
           id: 1,
           type: 'name',
+          label: '이름',
           text: '',
           style: {
-            fontFamily: 'Nanum Gothic',
+            fontFamily: 'NanumGothic',
             fontSize: 30,
             fontWeight: 'bold',
             fontColor: '#683617',
@@ -67,10 +68,12 @@ export default {
         {
           id: 2,
           type: 'contents',
+          label: '내용',
           text: '',
           style: {
             fontFamily: 'NanumGothic',
-            fontSize: 20,
+            fontSize: 30,
+            fontWeight: 'bold',
             fontColor: '#827255',
             textBorder: 'none',
           },
@@ -84,9 +87,11 @@ export default {
     image() {
       return { id: 2, src: require('@/assets/image2.png'), label: '말풍선' };
     },
-  },
 
-  watch: {},
+    getPathName() {
+      return window.location.pathname;
+    },
+  },
 
   methods: {
     onValueChanged(type, value) {
@@ -96,10 +101,23 @@ export default {
         return;
       }
 
+      // 줄 바꿈 문자('\n')의 개수를 세기 위한 정규 표현식 사용
+      const lineBreakCount = (value.match(/\n/g) || []).length;
+
+      // 만약 줄 바꿈 문자가 4개 이상이면, 더 이상 입력을 허용하지 않음
+      if (input.type === 'contents' && lineBreakCount >= 4) {
+        // 현재 input.text를 유지하거나 초기화하려면 여기에서 처리
+        // input.text = ...;
+        return;
+      }
+
+      // maxLength를 초과하는 경우, maxLength까지만 입력값을 자름
+      if (value.length > input.maxLength) {
+        value = value.slice(0, input.maxLength);
+      }
+
       input.text = value;
-      this.updateCanvasImage();
-    },
-    updateCanvasImage() {
+
       this.drawImage();
     },
 
@@ -114,28 +132,21 @@ export default {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         this.inputs.forEach(({ type, text }) => {
-          if (text) {
-            this.updateCanvasText(type, text);
+          if (!text) {
+            return;
+          }
+
+          if (type === 'name') {
+            this.updateCanvasNameText(text);
+            return;
+          }
+
+          if (type === 'contents') {
+            this.updateCanvasContentsText(text);
+            return;
           }
         });
       };
-    },
-
-    // methods 안의 updateCanvasText 메소드 부분을 수정합니다.
-    updateCanvasText(type, text) {
-      if (!text) {
-        return;
-      }
-
-      if (type === 'name') {
-        this.updateCanvasNameText(text);
-        return;
-      }
-
-      if (type === 'contents') {
-        this.updateCanvasContentsText(text);
-        return;
-      }
     },
 
     updateCanvasNameText(text) {
@@ -145,6 +156,7 @@ export default {
       const ctx = canvas.getContext('2d');
 
       ctx.font = `${style.fontWeight} ${style.fontSize}px ${style.fontFamily}`;
+
       ctx.textAlign = 'center'; // 가로 가운데 정렬
       ctx.textBaseline = 'middle'; // 세로 가운데 정렬
 
@@ -179,14 +191,17 @@ export default {
       ctx.textAlign = 'center'; // 가로 가운데 정렬
       ctx.textBaseline = 'middle'; // 세로 가운데 정렬
       ctx.font = `${style.fontWeight} ${style.fontSize}px ${style.fontFamily}`;
+      ctx.fontSize = style.fontSize + 'px'; // 여기서 폰트 크기 설정
 
       const lines = text.split('\n');
       const lineHeight = style.fontSize * 1.5; // 행 간격
       const totalTextHeight = lines.length * lineHeight; // 텍스트 전체 높이
       const yStartPosition =
         (canvas.height - totalTextHeight) / 2 + style.fontSize / 2; // 이미지 위에 텍스트를 그리기 위해 조정
+
       lines.forEach((line, index) => {
         const y = yStartPosition + index * lineHeight;
+
         ctx.strokeStyle = `${style.textBorder}`;
         ctx.strokeStyle = style.fontColor;
         ctx.strokeText(line, canvas.width / 2, y);
@@ -212,7 +227,7 @@ export default {
 
   mounted() {
     this.calculateWindowWidth();
-    this.updateCanvasImage();
+    this.drawImage();
     this.$nextTick(() => {
       window.addEventListener('resize', this.calculateWindowWidth);
     });
@@ -232,11 +247,10 @@ export default {
   margin-bottom: 20px;
   border-radius: 10px;
   background-color: white;
-  width: 100%;
-  height: 50px;
+  padding: 8px;
 }
 
-.el-item {
-  margin: 0;
+.input-label {
+  width: 5%;
 }
 </style>
