@@ -1,24 +1,8 @@
-# animal-crossing-maker
+# 동물의 숲 짤 생성기 (animal-crossing-maker)
 
-## Project setup
-```
-yarn install
-```
+![](https://velog.velcdn.com/images/nsunny0908/post/9b3585d3-2614-4603-9a81-bf2370a3c598/image.png)
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+- 이름과 내용을 입력해보세요!
+- 이름은 3글자, 내용은 줄바꿈 4번, 30글자까지 입력할 수 있어요.
 
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+[만들러가기](https://animal-crossing-maker.netlify.app/)
