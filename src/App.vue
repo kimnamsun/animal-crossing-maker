@@ -1,6 +1,25 @@
 <template>
   <div id="app">
     <ImageSubtitle />
+    <el-footer>
+      <el-link
+        type="default"
+        :underline="false"
+        target="_blank"
+        href="https://github.com/kimnamsun/animal-crossing-maker"
+      >
+        github
+      </el-link>
+      🍃
+      <el-link
+        type="default"
+        :underline="false"
+        target="_blank"
+        href="https://kimnamsun.github.io/contents/posts/2023-08-27/"
+      >
+        제작 과정
+      </el-link>
+    </el-footer>
   </div>
 </template>
 
