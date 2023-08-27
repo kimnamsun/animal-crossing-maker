@@ -173,29 +173,25 @@ export default {
           return;
         }
 
-        this.updateCanvasText(type, text);
+        const { canvas } = this.$refs;
+        const ctx = canvas.getContext('2d');
+
+        ctx.font = `${this.commonStyle.fontWeight} ${this.commonStyle.fontSize}px ${this.commonStyle.fontFamily}`;
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.textBorder = this.commonStyle.textBorder;
+
+        if (type === 'name') {
+          this.updateCanvasNameText(text);
+          return;
+        }
+
+        if (type === 'contents') {
+          this.updateCanvasContentsText(text);
+          return;
+        }
       });
-    },
-
-    updateCanvasText(type, text) {
-      const { canvas } = this.$refs;
-      const ctx = canvas.getContext('2d');
-
-      ctx.font = `${this.commonStyle.fontWeight} ${this.commonStyle.fontSize}px ${this.commonStyle.fontFamily}`;
-
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.textBorder = this.commonStyle.textBorder;
-
-      if (type === 'name') {
-        this.updateCanvasNameText(text);
-        return;
-      }
-
-      if (type === 'contents') {
-        this.updateCanvasContentsText(text);
-        return;
-      }
     },
 
     updateCanvasNameText(text) {
@@ -239,8 +235,6 @@ export default {
       lines.forEach((line, index) => {
         const y = yStartPosition + index * lineHeight;
 
-        ctx.strokeStyle = style.fontColor;
-        ctx.strokeText(line, canvas.width / 2, y);
         ctx.fillStyle = style.fontColor;
         ctx.fillText(line, canvas.width / 2, y);
       });
